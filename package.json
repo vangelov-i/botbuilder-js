@@ -9,8 +9,8 @@
         "test": "lerna run build && nyc mocha \"libraries/bot*/tests/*.test.js\"",
         "build-docs": "lerna run build-docs",
         "tslint": "tslint ./libraries/*/src/*.ts ./libraries/*/src/**/*.ts  -t verbose",
-        "set-dependency-versions": "node tools/util/updateDependenciesInPackageJsons.js ./libraries ^${Version} botbuilder botbuilder-choices botbuilder-core botbuilder-prompts botframework-connector botframework-config botframework-schema && node tools/util/updateDependenciesInPackageJsons.js ./transcripts ^${Version} botbuilder botbuilder-ai botbuilder-dialogs",
-        "update-versions": "set npm_config_Version=4.0.0&&lerna run set-version && npm run set-dependency-versions"
+        "set-dependency-versions": "node tools/util/updateDependenciesInPackageJsons.js ./libraries ^$version botbuilder botbuilder-choices botbuilder-core botbuilder-prompts botframework-connector botframework-config botframework-schema && node tools/util/updateDependenciesInPackageJsons.js ./transcripts ^$version botbuilder botbuilder-ai botbuilder-dialogs",
+        "update-versions": "set version=4.0.0&&lerna run set-version && npm run set-dependency-versions"
     },
     "dependencies": {
         "replace-in-file": "^3.4.2",
