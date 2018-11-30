@@ -9,6 +9,7 @@ import { TurnContext } from 'botbuilder-core';
 import { SimpleProperty } from './simpleProperty';
 import { PropertyAccessor } from './propertyAccessor';
 import { CompositePropertyAccessor } from './compositePropertyAccessor';
+import { PropertyEvent } from './propertyEventSource';
 
 export class CompositeProperty<T extends object = {}> extends SimpleProperty<T> implements CompositePropertyAccessor {
     private properties: { [name: string]: PropertyAccessor; } = {};
@@ -52,6 +53,14 @@ export class CompositeProperty<T extends object = {}> extends SimpleProperty<T> 
         await this.parent.setPropertyValue(context, this.name, container);
     }
 
+    public async emitEvent(context: TurnContext, event: PropertyEvent, next: () => Promise<void>): Promise<void> {
+        await super.emitEvent(context, event, async () => {
+            await this.parent.emitEvent(context, event, async () => {
+                await next();
+            });
+        });
+    }
+
     protected async onGet(context: TurnContext, defaultValue?: T): Promise<T | undefined> {
         const hasValue = await this.parent.getPropertyValue(context, this.name) !== undefined;
         if (hasValue || defaultValue !== undefined) {
@@ -67,7 +76,7 @@ export class CompositeProperty<T extends object = {}> extends SimpleProperty<T> 
         return undefined;
     }
 
-    public async onSet(context: TurnContext, value: T): Promise<void> {
+    protected async onSet(context: TurnContext, value: T): Promise<void> {
         // Enumerate properties and set individual value members 
         if (typeof value !== 'object') { value = {} as T }
         for (const name in this.properties) {
