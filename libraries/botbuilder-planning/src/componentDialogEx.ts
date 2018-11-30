@@ -9,18 +9,20 @@ import { ComponentDialog, Dialog } from 'botbuilder-dialogs';
 import { CompositeProperty } from './properties';
 
 export class ComponentDialogEx<O extends object = {}> extends ComponentDialog<O> {
-    public readonly properties: CompositeProperty;
+    public readonly userProperties: CompositeProperty;
+    public readonly conversationProperties: CompositeProperty;
 
     constructor(dialogId: string) {
         super(dialogId);
-        this.properties = new CompositeProperty(dialogId);
+        this.userProperties = new CompositeProperty(dialogId);
+        this.conversationProperties = new CompositeProperty(dialogId);
     }
 
     public addDialog(dialog: Dialog): this {
         // Automatically add child dialog properties
         if (dialog instanceof ComponentDialogEx) {
-            const properties = (dialog as ComponentDialogEx).properties;
-            this.properties.addProperty(properties);
+            this.userProperties.addProperty((dialog as ComponentDialogEx).userProperties);
+            this.conversationProperties.addProperty((dialog as ComponentDialogEx).conversationProperties);
         }
 
         return super.addDialog(dialog);
