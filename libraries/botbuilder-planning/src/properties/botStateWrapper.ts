@@ -5,12 +5,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { TurnContext, BotState } from 'botbuilder-core';
+import { TurnContext, BotState, MemoryStorage, ConversationState } from 'botbuilder-core';
 import { CompositePropertyAccessor } from './compositePropertyAccessor';
 import { PropertyEventSource, PropertyEvent } from './propertyEventSource';
 import { PropertyAccessor } from './propertyAccessor';
+import { SimpleProperty } from './simpleProperty';
 
-export class BotStateAdapter extends PropertyEventSource implements CompositePropertyAccessor {
+export class BotStateWrapper extends PropertyEventSource implements CompositePropertyAccessor {
     private readonly botState: BotState;
     private properties: { [name: string]: PropertyAccessor; } = {};
 
