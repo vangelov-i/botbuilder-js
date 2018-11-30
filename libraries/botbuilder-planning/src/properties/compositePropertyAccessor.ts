@@ -6,7 +6,7 @@
  * Licensed under the MIT License.
  */
 import { TurnContext } from 'botbuilder-core';
-import { PropertyEvent } from './propertyEventSource';
+import { PropertyEvent, PropertyEventHandler } from './propertyEventSource';
 
 export interface CompositePropertyAccessor {
     /**
@@ -26,5 +26,6 @@ export interface CompositePropertyAccessor {
 
     setPropertyValue(context: TurnContext, name: string, value: any): Promise<void>;
 
-    emitEvent(context: TurnContext, event: PropertyEvent, next: () => Promise<void>): Promise<void>
+    emitEvent(context: TurnContext, event: PropertyEvent, next: () => Promise<void>): Promise<void>;
+    onEvent(handler: PropertyEventHandler): this;
 }

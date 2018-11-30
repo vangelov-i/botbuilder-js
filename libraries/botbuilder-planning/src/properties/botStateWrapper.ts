@@ -7,7 +7,7 @@
  */
 import { TurnContext, BotState } from 'botbuilder-core';
 import { CompositePropertyAccessor } from './compositePropertyAccessor';
-import { PropertyEventSource, PropertyEvent } from './propertyEventSource';
+import { PropertyEventSource, PropertyEvent, PropertyEventTypes } from './propertyEventSource';
 import { PropertyAccessor } from './propertyAccessor';
 
 export class BotStateWrapper extends PropertyEventSource implements CompositePropertyAccessor {

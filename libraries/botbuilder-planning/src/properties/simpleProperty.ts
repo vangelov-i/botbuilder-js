@@ -35,8 +35,8 @@ export class SimpleProperty<T = any> extends PropertyEventSource implements Prop
 
     public async set(context: TurnContext, value: T): Promise<void> {
         this.ensureConfigured();
-        await this.emitSetEvent(context, value, async () => {
-            await this.onSet(context, value);
+        await this.emitSetEvent(context, value, async (val) => {
+            await this.onSet(context, val);
         });
     }
 
@@ -69,14 +69,16 @@ export class SimpleProperty<T = any> extends PropertyEventSource implements Prop
         });
     }
 
-    protected async emitSetEvent(context: TurnContext, value: T, next: () => Promise<void>): Promise<void> {
+    protected async emitSetEvent(context: TurnContext, value: T, next: (value: T) => Promise<void>): Promise<void> {
         const event: SetPropertyEvent = {
             type: PropertyEventTypes.setProperty,
             property: this,
             value: value
         };
         await this.emitEvent(context, event, async () => {
-            await this.parent.emitEvent(context, event, next);
+            await this.parent.emitEvent(context, event, async () => {
+                await next(event.value);
+            });
         });
 
     }
