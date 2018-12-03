@@ -10,20 +10,25 @@ import { PropertyEventSource, PropertyEvent, SetPropertyEvent, PropertyEventType
 import { PropertyAccessor } from './propertyAccessor';
 import { CompositePropertyAccessor } from './compositePropertyAccessor';
 
-export class SimpleProperty<T = any> extends PropertyEventSource implements PropertyAccessor<T> {
+export abstract class SimpleProperty<T = any> extends PropertyEventSource implements PropertyAccessor<T> {
     public name: string;
+    public typeName: string;
     public parent: CompositePropertyAccessor|undefined;
 
     constructor(name?: string) {
         super();
         this.name = name;
+        this.typeName = name;
     }
 
     public async delete(context: TurnContext): Promise<void> {
         this.ensureConfigured();
-        await this.emitDeleteEvent(context, async () => {
-            await this.onDelete(context);
-        });
+        const exists = this.onHasChanged(context, undefined);
+        if (exists) {
+            await this.emitDeleteEvent(context, async () => {
+                await this.onDelete(context);
+            });
+        }
     }
 
     public get(context: TurnContext): Promise<T | undefined>;
@@ -33,12 +38,29 @@ export class SimpleProperty<T = any> extends PropertyEventSource implements Prop
         return await this.onGet(context, defaultValue);
     }
 
-    public async set(context: TurnContext, value: T): Promise<void> {
+    public async hasChanged(context: TurnContext, value: T): Promise<boolean> {
         this.ensureConfigured();
-        await this.emitSetEvent(context, value, async (val) => {
-            await this.onSet(context, val);
-        });
+        return await this.onHasChanged(context, value);
     }
+
+    public async set(context: TurnContext, value: T, force?: boolean): Promise<void> {
+        this.ensureConfigured();
+        const changed = force || await this.onHasChanged(context, value);
+        if (changed) {
+            await this.emitSetEvent(context, value, async (val) => {
+                await this.onSet(context, val);
+            });
+        }
+    }
+
+    public clone(obj?: this): this {
+        obj.name = this.name;
+        obj.typeName = this.typeName;
+        obj.parent = this.parent;
+        return super.clone(obj);
+    }
+
+    protected abstract onHasChanged(context: TurnContext, value: T): Promise<boolean>;
 
     protected async onDelete(context: TurnContext): Promise<void> {
         await this.parent.deletePropertyValue(context, this.name);

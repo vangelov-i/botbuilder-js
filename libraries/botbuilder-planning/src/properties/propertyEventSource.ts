@@ -45,4 +45,10 @@ export class PropertyEventSource {
         this.handlers.push(handler);
         return this;
     }
+
+    public clone(obj?: this): this {
+        if (!obj) { obj = new PropertyEventSource() as this }
+        obj.handlers = this.handlers.slice(0);
+        return obj;
+    }
 }

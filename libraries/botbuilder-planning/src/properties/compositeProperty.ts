@@ -61,6 +61,35 @@ export class CompositeProperty<T extends object = {}> extends SimpleProperty<T> 
         });
     }
 
+    public clone(obj?: this): this {
+        if (!obj) { obj = new CompositeProperty() as this }
+        Object.assign(obj.properties, this.properties);
+        return super.clone(obj);
+    }
+
+    protected async onHasChanged(context: TurnContext, value: T): Promise<boolean> {
+        const hasValue = await this.parent.getPropertyValue(context, this.name) !== undefined;
+        if (typeof value === 'object') {
+            if (hasValue) {
+                // Check for any changes to individual properties
+                for (const name in value) {
+                    if (this.properties.hasOwnProperty(name)) {
+                        const changed = await this.properties[name].hasChanged(context, value[name]);
+                        if (changed) {
+                            return true;
+                        }
+                    }
+                }
+            } else {
+                // We don't have anything assigned so return true
+                return true;
+            }
+        } else {
+            // We're being deleted so just return hasValue
+            return hasValue;
+        }
+    }
+
     protected async onGet(context: TurnContext, defaultValue?: T): Promise<T | undefined> {
         const hasValue = await this.parent.getPropertyValue(context, this.name) !== undefined;
         if (hasValue || defaultValue !== undefined) {
