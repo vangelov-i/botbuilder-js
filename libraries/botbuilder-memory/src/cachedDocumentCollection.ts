@@ -33,7 +33,7 @@ export abstract class CachedDocumentCollection extends PropertyEventSource imple
         return '';
     }
 
-    public async deleteProperty(context: TurnContext, id: string): Promise<void> {
+    public async deletePropertyValue(context: TurnContext, id: string): Promise<void> {
         const cache = this.getCache(context);
         if (cache.has(id)) {
             cache.delete(id);
@@ -41,27 +41,27 @@ export abstract class CachedDocumentCollection extends PropertyEventSource imple
         await this.onDeleteProperty(context, id);
     }
     
-    public async getProperty<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
-    public async getProperty<T = any>(context: TurnContext, id: string, defaultValue: T): Promise<T>;
-    public async getProperty<T = any>(context: TurnContext, id: string, defaultValue?: T): Promise<T> {
+    public async getPropertyValue<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
+    public async getPropertyValue<T = any>(context: TurnContext, id: string, defaultValue: T): Promise<T>;
+    public async getPropertyValue<T = any>(context: TurnContext, id: string, defaultValue?: T): Promise<T> {
         const cache = this.getCache(context);
         if (cache.has(id)) {
             cache.get(id)._value;
         } else {
             let value = await this.onGetProperty(context, id);
             if (value !== undefined) {
-                this.setProperty(context, id, value);
+                this.setPropertyValue(context, id, value);
                 return value;
             } else if (defaultValue !== undefined) {
                 const clone = Array.isArray(defaultValue) || typeof defaultValue === 'object' ? JSON.parse(JSON.stringify(defaultValue)) : defaultValue;
-                this.setProperty(context, id, clone);
+                this.setPropertyValue(context, id, clone);
                 return clone;
             }
         }
         return undefined;
     }
 
-    public async setProperty(context: TurnContext, id: string, value: any): Promise<void> {
+    public async setPropertyValue(context: TurnContext, id: string, value: any): Promise<void> {
         // Simply update the cache. The changes will be flushed when saveChanges() is called.
         const cache = this.getCache(context);
         if (cache.has(id)) {

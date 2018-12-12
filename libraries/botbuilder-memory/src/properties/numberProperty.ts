@@ -11,20 +11,20 @@ import { DocumentAccessor } from '../documentAccessor';
 import { IdFactory } from '../idFactory';
 import { PropertyAccessor } from '../propertyAccessor';
 
-export class StringProperty extends PropertyBase<string> {
+export class NumberProperty extends PropertyBase<number> {
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<string> {
+    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<number> {
         // Clone property
-        const accessor = new StringProperty(idOrFactory);
+        const accessor = new NumberProperty(idOrFactory);
         accessor.parent = parent;
         return accessor;
     }
 
-    protected async onHasChanged(context: TurnContext, value: string): Promise<boolean> {
+    protected async onHasChanged(context: TurnContext, value: number): Promise<boolean> {
         const id = await this.getId(context);
         const curValue = await this.parent.getPropertyValue(context, id);
-        const hasValue = typeof curValue === 'string';
-        if (typeof value === 'string') {
+        const hasValue = typeof curValue === 'number';
+        if (typeof value === 'number') {
             if (hasValue) {
                 return curValue !== value;
             } else {
@@ -37,10 +37,10 @@ export class StringProperty extends PropertyBase<string> {
         }
     }
 
-    protected async onSet(context: TurnContext, value: string): Promise<void> {
+    protected async onSet(context: TurnContext, value: number): Promise<void> {
         // Validate type being assigned
         const type = typeof value;
-        if (type !== 'string' && type !== 'undefined') { throw new Error(`StringProperty: invalid value assigned to property '${await this.getId(context)}'.`) }
+        if (type !== 'number' && type !== 'undefined') { throw new Error(`NumberProperty: invalid value assigned to property '${await this.getId(context)}'.`) }
         return super.onSet(context, value);
     }
 }

@@ -11,8 +11,8 @@ import { PropertyAccessor } from './propertyAccessor';
 export enum PropertyEventTypes {
     setProperty = 'setProperty',
     deleteProperty = 'deleteProperty',
-    arrayInsert = 'arrayInsert',
-    arrayRemove = 'arrayRemove'
+    collectionInsert = 'collectionInsert',
+    collectionDelete = 'collectionDelete'
 }
 
 export type PropertyEventHandler = (context: TurnContext, event: PropertyEvent, next: () => Promise<void>) => Promise<void>;
@@ -26,13 +26,13 @@ export interface SetPropertyEvent extends PropertyEvent {
     value: any;
 }
 
-export interface ArrayInsertEvent extends PropertyEvent {
-    position: number;
+export interface CollectionInsertEvent extends PropertyEvent {
+    key: any;
     value: any;
 }
 
-export interface ArrayRemoveEvent extends PropertyEvent {
-    position: number;
+export interface CollectionDeleteEvent extends PropertyEvent {
+    key: any;
 }
 
 export class PropertyEventSource {
@@ -55,11 +55,5 @@ export class PropertyEventSource {
     public onEvent(handler: PropertyEventHandler): this {
         this.handlers.push(handler);
         return this;
-    }
-
-    public clone(obj?: this): this {
-        if (!obj) { obj = new PropertyEventSource() as this }
-        obj.handlers = this.handlers.slice(0);
-        return obj;
     }
 }

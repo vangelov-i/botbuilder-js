@@ -10,6 +10,7 @@ import { DocumentAccessor } from './documentAccessor';
 import { PropertyAccessor } from './propertyAccessor';
 import { PropertyBase } from './propertyBase';
 import { PropertyEvent } from './propertyEventSource';
+import { IdFactory } from './idFactory';
 
 export class Document<T = any> extends PropertyBase<T> implements DocumentAccessor {
     private readonly properties: PropertyAccessor[] = [];
@@ -24,33 +25,46 @@ export class Document<T = any> extends PropertyBase<T> implements DocumentAccess
         this.properties.forEach(callbackfn);
     }
 
-    public async deleteProperty(context: TurnContext, id: string): Promise<void> {
+    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<T> {
+        // Clone document and add clone of properties
+        const accessor = new Document(idOrFactory);
+        accessor.parent = parent;
+        this.properties.forEach((prop) => {
+            if (typeof (prop as any).createAccessor === 'function') {
+                const p = (prop as any).createAccessor(accessor, prop.idFactory);
+                accessor.properties.push(p);
+            }
+        });
+        return accessor;
+    }
+
+    public async deletePropertyValue(context: TurnContext, id: string): Promise<void> {
         const docId = await this.getId(context);
-        const container = await this.parent.getProperty(context, docId, {});
+        const container = await this.parent.getPropertyValue(context, docId, {});
         if (container.hasOwnProperty(id)) {
             delete container[id];
-            await this.parent.setProperty(context, docId, container);
+            await this.parent.setPropertyValue(context, docId, container);
         }
     }
     
-    public async getProperty<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
-    public async getProperty<T = any>(context: TurnContext, id: string, defaultValue: T): Promise<T>;
-    public async getProperty<T = any>(context: TurnContext, id: string, defaultValue?: T): Promise<T> {
+    public async getPropertyValue<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
+    public async getPropertyValue<T = any>(context: TurnContext, id: string, defaultValue: T): Promise<T>;
+    public async getPropertyValue<T = any>(context: TurnContext, id: string, defaultValue?: T): Promise<T> {
         const docId = await this.getId(context);
-        const container = await this.parent.getProperty(context, docId, {});
+        const container = await this.parent.getPropertyValue(context, docId, {});
         if (!container.hasOwnProperty(id) && defaultValue !== undefined) {
             container[id] = defaultValue;
-            await this.parent.setProperty(context, docId, container);
+            await this.parent.setPropertyValue(context, docId, container);
         }
 
         return container[id];
     }
 
-    public async setProperty(context: TurnContext, id: string, value: any): Promise<void> {
+    public async setPropertyValue(context: TurnContext, id: string, value: any): Promise<void> {
         const docId = await this.getId(context);
-        const container = await this.parent.getProperty(context, docId, {});
+        const container = await this.parent.getPropertyValue(context, docId, {});
         container[id] = value;
-        await this.parent.setProperty(context, docId, container);
+        await this.parent.setPropertyValue(context, docId, container);
     }
 
     public async emitEvent(context: TurnContext, event: PropertyEvent, next: () => Promise<void>): Promise<void> {
@@ -64,7 +78,7 @@ export class Document<T = any> extends PropertyBase<T> implements DocumentAccess
 
     protected async onHasChanged(context: TurnContext, value: T): Promise<boolean> {
         const docId = await this.getId(context);
-        const hasValue = await this.parent.getProperty(context, docId) !== undefined;
+        const hasValue = await this.parent.getPropertyValue(context, docId) !== undefined;
         if (typeof value === 'object') {
             if (hasValue) {
                 // Check for any changes to individual properties
@@ -92,7 +106,7 @@ export class Document<T = any> extends PropertyBase<T> implements DocumentAccess
 
     protected async onGet(context: TurnContext, defaultValue?: T): Promise<T | undefined> {
         const docId = await this.getId(context);
-        const hasValue = await this.parent.getProperty(context, docId) !== undefined;
+        const hasValue = await this.parent.getPropertyValue(context, docId) !== undefined;
         if (hasValue || defaultValue !== undefined) {
             // Enumerate properties to assemble return value
             const value: T = {} as T;

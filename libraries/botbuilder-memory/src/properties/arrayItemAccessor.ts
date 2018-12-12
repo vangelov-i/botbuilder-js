@@ -26,19 +26,19 @@ export class ArrayItemAccessor<T = any> implements DocumentAccessor {
         return this._parent.getPath(context);
     }
 
-    public async deleteProperty(context: TurnContext, id: string): Promise<void> {
+    public async deletePropertyValue(context: TurnContext, id: string): Promise<void> {
         const position = parseInt(id);
-        await this._parent.removeItem(context, position); 
+        await this._parent.deleteItem(context, position); 
     }
     
-    public async getProperty(context: TurnContext, id: string): Promise<T | undefined>;
-    public async getProperty(context: TurnContext, id: string, defaultValue: T): Promise<T>;
-    public async getProperty(context: TurnContext, id: string, defaultValue?: T): Promise<T | undefined> {
+    public async getPropertyValue(context: TurnContext, id: string): Promise<T | undefined>;
+    public async getPropertyValue(context: TurnContext, id: string, defaultValue: T): Promise<T>;
+    public async getPropertyValue(context: TurnContext, id: string, defaultValue?: T): Promise<T | undefined> {
         const position = parseInt(id);
         return await this._parent.getItemValue(context, position);
     }
 
-    public async setProperty(context: TurnContext, id: string, value: any): Promise<void> {
+    public async setPropertyValue(context: TurnContext, id: string, value: any): Promise<void> {
         const position = parseInt(id);
         return await this._parent.setItemValue(context, position, value);
     }

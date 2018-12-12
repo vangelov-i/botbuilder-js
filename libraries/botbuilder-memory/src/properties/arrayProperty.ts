@@ -7,23 +7,44 @@
  */
 import { TurnContext } from 'botbuilder-core';
 import { PropertyBase } from '../propertyBase';
-import { ArrayInsertEvent, ArrayRemoveEvent, PropertyEventTypes } from '../propertyEventSource';
+import { CollectionInsertEvent, CollectionDeleteEvent, PropertyEventTypes } from '../propertyEventSource';
 import { PropertyAccessor } from '../propertyAccessor';
+import { PropertyAccessorFactory } from '../propertyAccessorFactory';
 import { ArrayItemAccessor } from './arrayItemAccessor';
 import { StaticIdFactory } from '../factories';
+import { DocumentAccessor } from '../documentAccessor';
+import { IdFactory } from '../idFactory';
 
 export class ArrayProperty<T = any> extends PropertyBase<T[]> {
 
-    public item(position: number, propertyAccessor: PropertyAccessor<T>): PropertyAccessor<T> {
-        propertyAccessor.idFactory = new StaticIdFactory(position.toString());
-        propertyAccessor.parent = new ArrayItemAccessor(this);
+    public itemAccessor: PropertyAccessorFactory<T>;
+
+    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<T[]> {
+        // Clone property
+        const accessor = new ArrayProperty(idOrFactory);
+        accessor.parent = parent;
+        accessor.itemAccessor = this.itemAccessor;
+        return accessor;
+    }
+
+    public getItem(index: number, propertyAccessor?: PropertyAccessor<T>): PropertyAccessor<T> {
+        const idFactory = new StaticIdFactory(index.toString());
+        const parent = new ArrayItemAccessor(this);
+        if (propertyAccessor) {
+            propertyAccessor.idFactory = idFactory
+            propertyAccessor.parent = parent;
+        } else if (this.itemAccessor) {
+            propertyAccessor = this.itemAccessor.createAccessor(parent, idFactory);
+        } else {
+            throw new Error(`ArrayProperty: getItem() called without a 'propertyAccessor' and no 'accessorFactory' assigned.`);
+        } 
         return propertyAccessor;
     }
 
-    public async getItemValue(context: TurnContext, position: number): Promise<T> {
+    public async getItemValue(context: TurnContext, index: number): Promise<T> {
         this.ensureConfigured();
         const array = await this.getArray(context);
-        return array[position];
+        return array[index];
     }
 
     public async getLength(context: TurnContext): Promise<number> {
@@ -34,22 +55,22 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
 
     public async insertItem(context: TurnContext, value: T, position = -1): Promise<void> {
         this.ensureConfigured();
-        await this.emitArrayInsertEvent(context, value, position, async (val) => {
+        await this.emitCollectionInsertEvent(context, value, position, async (val) => {
             await this.onInsertItem(context, val, position);
         });
     }
 
-    public async removeItem(context: TurnContext, position = -1): Promise<void> {
+    public async deleteItem(context: TurnContext, position = -1): Promise<void> {
         this.ensureConfigured();
-        await this.emitArrayRemoveEvent(context, position, async () => {
-            await this.onRemoveItem(context, position);
+        await this.emitCollectionDeleteEvent(context, position, async () => {
+            await this.onDeleteItem(context, position);
         });
     }
 
-    public async setItemValue(context: TurnContext, position: number, value: T): Promise<void> {
+    public async setItemValue(context: TurnContext, index: number, value: T): Promise<void> {
         this.ensureConfigured();
         const array = await this.getArray(context);
-        array[position] = value;
+        array[index] = value;
         await this.setArray(context, array);
     }
 
@@ -85,7 +106,7 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
         await this.setArray(context, array);
     }
 
-    protected async onRemoveItem(context: TurnContext, position: number): Promise<void> {
+    protected async onDeleteItem(context: TurnContext, position: number): Promise<void> {
         const array = await this.getArray(context);
         if (position >= 0) {
             array.splice(position, 1);
@@ -95,11 +116,11 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
         await this.setArray(context, array);
     }
 
-    protected async emitArrayInsertEvent(context: TurnContext, value: T, position: number, next: (value: T) => Promise<void>): Promise<void> {
-        const event: ArrayInsertEvent = {
-            type: PropertyEventTypes.arrayInsert,
+    protected async emitCollectionInsertEvent(context: TurnContext, value: T, position: number, next: (value: T) => Promise<void>): Promise<void> {
+        const event: CollectionInsertEvent = {
+            type: PropertyEventTypes.collectionInsert,
             property: this,
-            position: position,
+            key: position,
             value: value
         };
         await this.emitEvent(context, event, async () => {
@@ -109,11 +130,11 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
         });
     }
 
-    protected async emitArrayRemoveEvent(context: TurnContext, position: number, next: () => Promise<void>): Promise<void> {
-        const event: ArrayRemoveEvent = {
-            type: PropertyEventTypes.arrayRemove,
+    protected async emitCollectionDeleteEvent(context: TurnContext, position: number, next: () => Promise<void>): Promise<void> {
+        const event: CollectionDeleteEvent = {
+            type: PropertyEventTypes.collectionDelete,
             property: this,
-            position: position
+            key: position
         };
         await this.emitEvent(context, event, async () => {
             await this.parent.emitEvent(context, event, async () => {
@@ -124,11 +145,11 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
 
     private async getArray(context: TurnContext): Promise<T[]> {
         const id = await this.getId(context);
-        return await this.parent.getProperty(context, id);
+        return await this.parent.getPropertyValue(context, id);
     }
 
     private async setArray(context: TurnContext, array: T[]): Promise<void> {
         const id = await this.getId(context);
-        await this.parent.setProperty(context, id, array);
+        await this.parent.setPropertyValue(context, id, array);
     }
 }

@@ -8,11 +8,12 @@
 import { TurnContext } from 'botbuilder-core';
 import { PropertyEventSource, PropertyEvent, SetPropertyEvent, PropertyEventTypes } from './propertyEventSource';
 import { PropertyAccessor } from './propertyAccessor';
+import { PropertyAccessorFactory } from './propertyAccessorFactory';
 import { DocumentAccessor } from './documentAccessor';
 import { IdFactory } from './idFactory';
 import { StaticIdFactory } from './factories';
 
-export abstract class PropertyBase<T = any> extends PropertyEventSource implements PropertyAccessor<T> {
+export abstract class PropertyBase<T = any> extends PropertyEventSource implements PropertyAccessor<T>, PropertyAccessorFactory<T> {
     private _tags: string[];
 
     public idFactory: IdFactory;
@@ -76,20 +77,22 @@ export abstract class PropertyBase<T = any> extends PropertyEventSource implemen
         }
     }
 
+    public abstract createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<T>;
+
     protected abstract onHasChanged(context: TurnContext, value: T): Promise<boolean>;
 
     protected async onDelete(context: TurnContext): Promise<void> {
         const id = await this.getId(context);
-        await this.parent.deleteProperty(context, id);
+        await this.parent.deletePropertyValue(context, id);
     }
 
     protected async onGet(context: TurnContext, defaultValue?: any): Promise<any> {
         const id = await this.getId(context);
-        let value = await this.parent.getProperty(context, id);
+        let value = await this.parent.getPropertyValue(context, id);
         if (value === undefined && defaultValue !== undefined) {
             value = typeof defaultValue === 'object' || Array.isArray(defaultValue) ? JSON.parse(JSON.stringify(defaultValue)) : defaultValue;
             await this.emitSetEvent(context, value, async () => {
-                await this.parent.setProperty(context, id, value);
+                await this.parent.setPropertyValue(context, id, value);
             });
         }
         return value;
@@ -97,7 +100,7 @@ export abstract class PropertyBase<T = any> extends PropertyEventSource implemen
 
     protected async onSet(context: TurnContext, value: any): Promise<void> {
         const id = await this.getId(context);
-        await this.parent.setProperty(context, id, value);
+        await this.parent.setPropertyValue(context, id, value);
     }
 
     protected async emitDeleteEvent(context: TurnContext, next: () => Promise<void>): Promise<void> {

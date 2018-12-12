@@ -7,12 +7,22 @@
  */
 import { TurnContext } from 'botbuilder-core';
 import { PropertyBase } from '../propertyBase';
+import { DocumentAccessor } from '../documentAccessor';
+import { IdFactory } from '../idFactory';
+import { PropertyAccessor } from '../propertyAccessor';
 
 export class AnyProperty extends PropertyBase<any> {
 
+    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<any> {
+        // Clone property
+        const accessor = new AnyProperty(idOrFactory);
+        accessor.parent = parent;
+        return accessor;
+    }
+    
     protected async onHasChanged(context: TurnContext, value: any): Promise<boolean> {
         const id = await this.getId(context);
-        const curValue = await this.parent.getProperty(context, id);
+        const curValue = await this.parent.getPropertyValue(context, id);
         const curType = getType(curValue);
         const valueType = getType(value);
         

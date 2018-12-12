@@ -13,12 +13,12 @@ export interface DocumentAccessor {
 
     getPath(context: TurnContext): Promise<string>;
 
-    deleteProperty(context: TurnContext, id: string): Promise<void>;
+    deletePropertyValue(context: TurnContext, id: string): Promise<void>;
     
-    getProperty<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
-    getProperty<T = any>(context: TurnContext, id: string, defaultValue: T): Promise<T>;
+    getPropertyValue<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
+    getPropertyValue<T = any>(context: TurnContext, id: string, defaultValue: T): Promise<T>;
 
-    setProperty(context: TurnContext, id: string, value: any): Promise<void>;
+    setPropertyValue(context: TurnContext, id: string, value: any): Promise<void>;
 
     emitEvent(context: TurnContext, event: PropertyEvent, next: () => Promise<void>): Promise<void>;
     onEvent(handler: PropertyEventHandler): this;

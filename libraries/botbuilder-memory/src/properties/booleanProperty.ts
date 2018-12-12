@@ -11,20 +11,20 @@ import { DocumentAccessor } from '../documentAccessor';
 import { IdFactory } from '../idFactory';
 import { PropertyAccessor } from '../propertyAccessor';
 
-export class StringProperty extends PropertyBase<string> {
+export class BooleanProperty extends PropertyBase<boolean> {
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<string> {
+    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<boolean> {
         // Clone property
-        const accessor = new StringProperty(idOrFactory);
+        const accessor = new BooleanProperty(idOrFactory);
         accessor.parent = parent;
         return accessor;
     }
 
-    protected async onHasChanged(context: TurnContext, value: string): Promise<boolean> {
+    protected async onHasChanged(context: TurnContext, value: boolean): Promise<boolean> {
         const id = await this.getId(context);
         const curValue = await this.parent.getPropertyValue(context, id);
-        const hasValue = typeof curValue === 'string';
-        if (typeof value === 'string') {
+        const hasValue = typeof curValue === 'boolean';
+        if (typeof value === 'boolean') {
             if (hasValue) {
                 return curValue !== value;
             } else {
@@ -37,10 +37,10 @@ export class StringProperty extends PropertyBase<string> {
         }
     }
 
-    protected async onSet(context: TurnContext, value: string): Promise<void> {
+    protected async onSet(context: TurnContext, value: number): Promise<void> {
         // Validate type being assigned
         const type = typeof value;
-        if (type !== 'string' && type !== 'undefined') { throw new Error(`StringProperty: invalid value assigned to property '${await this.getId(context)}'.`) }
+        if (type !== 'boolean' && type !== 'undefined') { throw new Error(`BooleanProperty: invalid value assigned to property '${await this.getId(context)}'.`) }
         return super.onSet(context, value);
     }
 }
