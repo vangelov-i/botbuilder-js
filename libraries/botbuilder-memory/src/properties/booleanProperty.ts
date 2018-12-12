@@ -13,11 +13,9 @@ import { PropertyAccessor } from '../propertyAccessor';
 
 export class BooleanProperty extends PropertyBase<boolean> {
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<boolean> {
-        // Clone property
-        const accessor = new BooleanProperty(idOrFactory);
-        accessor.parent = parent;
-        return accessor;
+    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<boolean> {
+        // Clone property with new ID and parent.
+        return this.copyTo(new BooleanProperty(idOrFactory, parent));
     }
 
     protected async onHasChanged(context: TurnContext, value: boolean): Promise<boolean> {

@@ -13,11 +13,9 @@ import { PropertyAccessor } from '../propertyAccessor';
 
 export class ISODateProperty extends PropertyBase<Date> {
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<Date> {
-        // Clone property
-        const accessor = new ISODateProperty(idOrFactory);
-        accessor.parent = parent;
-        return accessor;
+    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<Date> {
+        // Clone property with new ID and parent.
+        return this.copyTo(new ISODateProperty(idOrFactory, parent));
     }
 
     protected async onHasChanged(context: TurnContext, value: Date): Promise<boolean> {

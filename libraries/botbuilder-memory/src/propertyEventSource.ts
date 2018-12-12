@@ -56,4 +56,9 @@ export class PropertyEventSource {
         this.handlers.push(handler);
         return this;
     }
+
+    protected copyTo(obj: any): this {
+        (obj as PropertyEventSource).handlers = this.handlers.slice(0);
+        return obj;
+    }
 }

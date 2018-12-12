@@ -9,7 +9,6 @@ import { TurnContext } from 'botbuilder-core';
 import { PropertyBase } from '../propertyBase';
 import { CollectionInsertEvent, CollectionDeleteEvent, PropertyEventTypes } from '../propertyEventSource';
 import { PropertyAccessor } from '../propertyAccessor';
-import { PropertyAccessorFactory } from '../propertyAccessorFactory';
 import { ArrayItemAccessor } from './arrayItemAccessor';
 import { StaticIdFactory } from '../factories';
 import { DocumentAccessor } from '../documentAccessor';
@@ -17,33 +16,14 @@ import { IdFactory } from '../idFactory';
 
 export class ArrayProperty<T = any> extends PropertyBase<T[]> {
 
-    public itemAccessor: PropertyAccessorFactory<T>;
-
-    constructor(idOrFactory?: string|IdFactory, itemAccessor?: PropertyAccessorFactory<T>) {
-        super(idOrFactory);
-        this.itemAccessor = itemAccessor;
+    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<T[]> {
+        // Clone property with new ID and parent.
+        return this.copyTo(new ArrayProperty(idOrFactory, parent)); 
     }
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<T[]> {
-        // Clone property
-        const accessor = new ArrayProperty(idOrFactory);
-        accessor.parent = parent;
-        accessor.itemAccessor = this.itemAccessor;
-        return accessor;
-    }
-
-    public getItem(index: number, propertyAccessor?: PropertyAccessor<T>): PropertyAccessor<T> {
-        const idFactory = new StaticIdFactory(index.toString());
+    public createItemAccessor(index: number, propertyAccessor: PropertyAccessor<T>): PropertyAccessor<T> {
         const parent = new ArrayItemAccessor(this);
-        if (propertyAccessor) {
-            propertyAccessor.idFactory = idFactory
-            propertyAccessor.parent = parent;
-        } else if (this.itemAccessor) {
-            propertyAccessor = this.itemAccessor.createAccessor(parent, idFactory);
-        } else {
-            throw new Error(`ArrayProperty: getItem() called without a 'propertyAccessor' and no 'accessorFactory' assigned.`);
-        } 
-        return propertyAccessor;
+        return propertyAccessor.createAccessor(new StaticIdFactory(index.toString()), parent);
     }
 
     public async getItemValue(context: TurnContext, index: number): Promise<T> {

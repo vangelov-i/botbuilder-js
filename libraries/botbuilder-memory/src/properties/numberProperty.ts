@@ -13,11 +13,9 @@ import { PropertyAccessor } from '../propertyAccessor';
 
 export class NumberProperty extends PropertyBase<number> {
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<number> {
-        // Clone property
-        const accessor = new NumberProperty(idOrFactory);
-        accessor.parent = parent;
-        return accessor;
+    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<number> {
+        // Clone property with new ID and parent.
+        return this.copyTo(new NumberProperty(idOrFactory, parent));
     }
 
     protected async onHasChanged(context: TurnContext, value: number): Promise<boolean> {

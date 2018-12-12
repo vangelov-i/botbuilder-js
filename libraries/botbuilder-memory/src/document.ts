@@ -13,11 +13,13 @@ import { PropertyEvent } from './propertyEventSource';
 import { IdFactory } from './idFactory';
 
 export class Document<T = any> extends PropertyBase<T> implements DocumentAccessor {
-    private readonly properties: PropertyAccessor[] = [];
+    private properties: PropertyAccessor[] = [];
 
-    public addProperty(property: PropertyAccessor): this {
-        property.parent = this;
-        this.properties.push(property);
+    public addProperty(...properties: PropertyAccessor[]): this {
+        properties.forEach((prop) => {
+            prop.parent = this;
+            this.properties.push(prop);
+        });
         return this;
     }
 
@@ -25,17 +27,10 @@ export class Document<T = any> extends PropertyBase<T> implements DocumentAccess
         this.properties.forEach(callbackfn);
     }
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<T> {
-        // Clone document and add clone of properties
-        const accessor = new Document(idOrFactory);
-        accessor.parent = parent;
-        this.properties.forEach((prop) => {
-            if (typeof (prop as any).createAccessor === 'function') {
-                const p = (prop as any).createAccessor(accessor, prop.idFactory);
-                accessor.properties.push(p);
-            }
-        });
-        return accessor;
+    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<T> {
+        // Clone document with new ID and Parent.
+        return this.copyTo(new Document(idOrFactory, parent));
+
     }
 
     public async deletePropertyValue(context: TurnContext, id: string): Promise<void> {
@@ -134,5 +129,11 @@ export class Document<T = any> extends PropertyBase<T> implements DocumentAccess
                 await prop.set(context, value[id]);
             }
         }
+    }
+
+    protected copyTo(obj: any): this {
+        super.copyTo(obj);
+        (obj as Document<T>).properties = this.properties.slice(0);
+        return obj;
     }
 }

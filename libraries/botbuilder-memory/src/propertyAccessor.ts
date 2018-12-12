@@ -22,4 +22,6 @@ export interface PropertyAccessor<T = any> extends StatePropertyAccessor<T> {
     hasChanged(context: TurnContext, value: T): Promise<boolean>;
 
     onEvent(handler: PropertyEventHandler): this;
+
+    createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<T>;
 }

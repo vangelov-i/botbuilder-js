@@ -13,11 +13,9 @@ import { PropertyAccessor } from '../propertyAccessor';
 
 export class StringProperty extends PropertyBase<string> {
 
-    public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<string> {
-        // Clone property
-        const accessor = new StringProperty(idOrFactory);
-        accessor.parent = parent;
-        return accessor;
+    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<string> {
+        // Clone property with new ID and parent.
+        return this.copyTo(new StringProperty(idOrFactory, parent));
     }
 
     protected async onHasChanged(context: TurnContext, value: string): Promise<boolean> {

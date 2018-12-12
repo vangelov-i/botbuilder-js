@@ -8,20 +8,20 @@
 import { TurnContext } from 'botbuilder-core';
 import { PropertyEventSource, PropertyEvent, SetPropertyEvent, PropertyEventTypes } from './propertyEventSource';
 import { PropertyAccessor } from './propertyAccessor';
-import { PropertyAccessorFactory } from './propertyAccessorFactory';
 import { DocumentAccessor } from './documentAccessor';
 import { IdFactory } from './idFactory';
 import { StaticIdFactory } from './factories';
 
-export abstract class PropertyBase<T = any> extends PropertyEventSource implements PropertyAccessor<T>, PropertyAccessorFactory<T> {
+export abstract class PropertyBase<T = any> extends PropertyEventSource implements PropertyAccessor<T> {
     private _tags: string[];
 
     public idFactory: IdFactory;
     public parent: DocumentAccessor|undefined;
 
-    constructor(idOrFactory?: string|IdFactory) {
+    constructor(idOrFactory?: string|IdFactory, parent?: DocumentAccessor) {
         super();
         this.idFactory = typeof idOrFactory === 'string' ? new StaticIdFactory(idOrFactory) : idOrFactory;
+        this.parent = parent;
     }
 
     public get tags(): string[] {
@@ -77,7 +77,7 @@ export abstract class PropertyBase<T = any> extends PropertyEventSource implemen
         }
     }
 
-    public abstract createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<T>;
+    public abstract createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<T>;
 
     protected abstract onHasChanged(context: TurnContext, value: T): Promise<boolean>;
 
@@ -129,5 +129,11 @@ export abstract class PropertyBase<T = any> extends PropertyEventSource implemen
     protected ensureConfigured() {
         if (!this.parent) { throw new Error(`The property doesn't have a 'parent' assigned.`) }
         if (!this.idFactory) { throw new Error(`The property doesn't have a 'idFactory' assigned.`) }
+    }
+
+    protected copyTo(obj: any): this {
+        super.copyTo(obj);
+        (obj as PropertyBase<T>)._tags = this._tags ? this._tags.slice(0) : undefined;
+        return obj;
     }
 } 
