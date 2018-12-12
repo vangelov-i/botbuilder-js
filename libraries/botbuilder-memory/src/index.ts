@@ -15,3 +15,4 @@ export * from './inMemoryDocumentCollection';
 export * from './propertyAccessor';
 export * from './propertyBase';
 export * from './propertyEventSource';
+export * from './temporaryDocument';

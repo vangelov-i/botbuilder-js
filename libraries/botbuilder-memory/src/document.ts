@@ -11,6 +11,8 @@ import { PropertyAccessor } from './propertyAccessor';
 import { PropertyBase } from './propertyBase';
 import { PropertyEvent } from './propertyEventSource';
 import { IdFactory } from './idFactory';
+import { StaticIdFactory } from './factories';
+import { TemporaryDocument } from './temporaryDocument';
 
 export class Document<T = any> extends PropertyBase<T> implements DocumentAccessor {
     private properties: PropertyAccessor[] = [];
@@ -128,6 +130,19 @@ export class Document<T = any> extends PropertyBase<T> implements DocumentAccess
             if (value.hasOwnProperty(id)) {
                 await prop.set(context, value[id]);
             }
+        }
+    }
+
+    protected ensureConfigured(): void {
+        // Documents that haven't been configured with a parent will be automatically configured
+        // to use a temporary document as their parent. This lets you manipulate documents 
+        // in-memory without having to be embedded in another document or persisted to a 
+        // collection. 
+        if (!this.parent) { 
+            if (!this.idFactory) { this.idFactory = new StaticIdFactory() }
+            this.parent = new TemporaryDocument() 
+        } else {
+            super.ensureConfigured();
         }
     }
 
