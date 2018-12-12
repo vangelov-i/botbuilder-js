@@ -13,6 +13,7 @@ import { IdFactory } from './idFactory';
 export interface PropertyAccessor<T = any> extends StatePropertyAccessor<T> {
     idFactory: IdFactory;
     parent: DocumentAccessor|undefined;
+    tags: string[];
 
     getId(context: TurnContext): Promise<string>;
     
