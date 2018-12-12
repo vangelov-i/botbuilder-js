@@ -14,9 +14,11 @@ export interface CurrentUserIdFactoryOptions {
 }
 
 export class CurrentUserIdFactory implements IdFactory {
+    public prefix: string;
     public options: CurrentUserIdFactoryOptions;
 
-    constructor(options?: Partial<CurrentUserIdFactoryOptions>) {
+    constructor(prefix = 'user', options?: Partial<CurrentUserIdFactoryOptions>) {
+        this.prefix = prefix;
         this.options = Object.assign({
             includeChannelId: false,
             separator: '-'
@@ -24,7 +26,8 @@ export class CurrentUserIdFactory implements IdFactory {
     }
 
     public async getId(context: TurnContext): Promise<string> {
-        let id = '';
+        let id = this.prefix;
+        if (this.options.separator) { id += this.options.separator }
         if (this.options.includeChannelId) {
             id += context.activity.channelId;
             if (this.options.separator) { id += this.options.separator }

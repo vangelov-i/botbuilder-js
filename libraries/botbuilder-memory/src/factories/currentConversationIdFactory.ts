@@ -15,9 +15,11 @@ export interface CurrentConversationIdFactoryOptions {
 }
 
 export class CurrentConversationIdFactory implements IdFactory {
+    public prefix: string;
     public options: CurrentConversationIdFactoryOptions;
 
-    constructor(options?: Partial<CurrentConversationIdFactoryOptions>) {
+    constructor(prefix = 'conversation', options?: Partial<CurrentConversationIdFactoryOptions>) {
+        this.prefix = prefix;
         this.options = Object.assign({
             includeChannelId: false,
             includeUserId: false,
@@ -26,7 +28,8 @@ export class CurrentConversationIdFactory implements IdFactory {
     }
 
     public async getId(context: TurnContext): Promise<string> {
-        let id = '';
+        let id = this.prefix;
+        if (this.options.separator) { id += this.options.separator }
         if (this.options.includeChannelId) {
             id += context.activity.channelId;
             if (this.options.separator) { id += this.options.separator }
