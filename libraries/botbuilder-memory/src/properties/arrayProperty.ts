@@ -19,6 +19,11 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
 
     public itemAccessor: PropertyAccessorFactory<T>;
 
+    constructor(idOrFactory?: string|IdFactory, itemAccessor?: PropertyAccessorFactory<T>) {
+        super(idOrFactory);
+        this.itemAccessor = itemAccessor;
+    }
+
     public createAccessor(parent: DocumentAccessor, idOrFactory: string|IdFactory): PropertyAccessor<T[]> {
         // Clone property
         const accessor = new ArrayProperty(idOrFactory);
