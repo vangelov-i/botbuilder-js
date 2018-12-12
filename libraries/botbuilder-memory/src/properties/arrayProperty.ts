@@ -38,10 +38,16 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
         return Array.isArray(array) ? array.length : 0;
     }
 
-    public async insertItem(context: TurnContext, value: T, position = -1): Promise<void> {
+    public async insertItem(context: TurnContext, valueOrAccessor: T|PropertyAccessor<T>, position = -1): Promise<void> {
         this.ensureConfigured();
-        await this.emitCollectionInsertEvent(context, value, position, async (val) => {
-            await this.onInsertItem(context, val, position);
+        let val: T;
+        if (typeof valueOrAccessor === 'object' && typeof (valueOrAccessor as PropertyAccessor<T>).get === 'function') {
+            val = await (valueOrAccessor as PropertyAccessor<T>).get(context);
+        } else {
+            val = valueOrAccessor as T;
+        }
+        await this.emitCollectionInsertEvent(context, position, val, async (val) => {
+            await this.onInsertItem(context, position, val);
         });
     }
 
@@ -81,7 +87,7 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
         return super.onSet(context, value);
     }
 
-    protected async onInsertItem(context: TurnContext, value: T, position: number): Promise<void> {
+    protected async onInsertItem(context: TurnContext, position: number, value: T): Promise<void> {
         const array = await this.getArray(context) || [];
         if (position >= 0) {
             array.splice(position, 0, value);
@@ -101,7 +107,7 @@ export class ArrayProperty<T = any> extends PropertyBase<T[]> {
         await this.setArray(context, array);
     }
 
-    protected async emitCollectionInsertEvent(context: TurnContext, value: T, position: number, next: (value: T) => Promise<void>): Promise<void> {
+    protected async emitCollectionInsertEvent(context: TurnContext, position: number, value: T, next: (value: T) => Promise<void>): Promise<void> {
         const event: CollectionInsertEvent = {
             type: PropertyEventTypes.collectionInsert,
             property: this,
