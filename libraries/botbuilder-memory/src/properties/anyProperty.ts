@@ -11,14 +11,14 @@ import { DocumentAccessor } from '../documentAccessor';
 import { IdFactory } from '../idFactory';
 import { PropertyAccessor } from '../propertyAccessor';
 
-export class AnyProperty extends PropertyBase<any> {
+export class AnyProperty<T = any> extends PropertyBase<T> {
 
-    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<any> {
+    public createAccessor(idOrFactory: string|IdFactory, parent: DocumentAccessor): PropertyAccessor<T> {
         // Clone property with new ID and parent.
         return this.copyTo(new AnyProperty(idOrFactory, parent));
     }
     
-    protected async onHasChanged(context: TurnContext, value: any): Promise<boolean> {
+    protected async onHasChanged(context: TurnContext, value: unknown): Promise<boolean> {
         const id = await this.getId(context);
         const curValue = await this.parent.getPropertyValue(context, id);
         const curType = getType(curValue);
@@ -43,7 +43,7 @@ export class AnyProperty extends PropertyBase<any> {
 }
 
 /** @private */
-function getType(value: any): string {
+function getType(value: unknown): string {
     if (Array.isArray(value)) {
         return 'array';
     } else if (Object.prototype.toString.call(value) === '[object Date]') {
