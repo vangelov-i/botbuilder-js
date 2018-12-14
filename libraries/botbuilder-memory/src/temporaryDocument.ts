@@ -11,13 +11,13 @@ import { DocumentContainer } from './documentContainer';
 import { PropertyEventSource, PropertyEvent } from './propertyEventSource';
 
 export class TemporaryDocument extends PropertyEventSource implements DocumentAccessor {
-    private value: object;
+    private body: object;
 
     public parent: DocumentAccessor;
 
-    constructor(value?: object, parent?: DocumentAccessor) {
+    constructor(body?: object, parent?: DocumentAccessor) {
         super();
-        this.value = value;
+        this.body = body;
         this.parent = parent;
     }
 
@@ -30,20 +30,20 @@ export class TemporaryDocument extends PropertyEventSource implements DocumentAc
     }
 
     public async deletePropertyValue(context: TurnContext, id: string): Promise<void> {
-        this.value = undefined;
+        this.body = undefined;
     }
     
     public async getPropertyValue<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
     public async getPropertyValue<T = any>(context: TurnContext, id: string, defaultValue: T): Promise<T>;
     public async getPropertyValue<T = any>(context: TurnContext, id: string, defaultValue?: T): Promise<T | undefined> {
-        if (!this.value) { this.value = defaultValue || {} }
-        if (id) { this.value['id'] = id }
-        return this.value as any;
+        if (!this.body) { this.body = defaultValue || {} }
+        if (id) { this.body['id'] = id }
+        return this.body as any;
     }
 
     public async setPropertyValue(context: TurnContext, id: string, value: any): Promise<void> {
-        this.value = value;
-        if (id && this.value) { this.value['id'] = id }
+        this.body = value;
+        if (id && this.body) { this.body['id'] = id }
     }
 
     public async emitEvent(context: TurnContext, event: PropertyEvent, next: () => Promise<void>): Promise<void> {
