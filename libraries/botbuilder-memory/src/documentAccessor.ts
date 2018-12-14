@@ -7,9 +7,11 @@
  */
 import { TurnContext } from 'botbuilder-core';
 import { PropertyEvent, PropertyEventHandler } from './propertyEventSource';
+import { DocumentContainer } from './documentContainer';
 
 export interface DocumentAccessor {
     parent: DocumentAccessor|undefined;
+    readonly container: DocumentContainer|undefined;
 
     getPath(context: TurnContext): Promise<string>;
 

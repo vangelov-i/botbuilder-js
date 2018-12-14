@@ -7,6 +7,7 @@
  */
 import { TurnContext } from 'botbuilder-core';
 import { DocumentAccessor } from '../documentAccessor';
+import { DocumentContainer } from '../documentContainer';
 import { ArrayProperty } from './arrayProperty';
 import { PropertyEvent, PropertyEventHandler } from '../propertyEventSource';
 
@@ -16,6 +17,10 @@ export class ArrayItemAccessor<T = any> implements DocumentAccessor {
 
     constructor(parent: ArrayProperty<T>) {
         this._parent = parent;
+    }
+
+    public get container(): DocumentContainer|undefined {
+        return this.parent ? this.parent.container : undefined;
     }
 
     public get parent(): DocumentAccessor {

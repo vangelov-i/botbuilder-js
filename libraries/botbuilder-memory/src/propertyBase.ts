@@ -13,7 +13,7 @@ import { IdFactory } from './idFactory';
 import { StaticIdFactory } from './factories';
 
 export abstract class PropertyBase<T = any> extends PropertyEventSource implements PropertyAccessor<T> {
-    private _tags: string[];
+    private _tags: string[] = [];
 
     public idFactory: IdFactory;
     public parent: DocumentAccessor|undefined;
@@ -25,12 +25,11 @@ export abstract class PropertyBase<T = any> extends PropertyEventSource implemen
     }
 
     public get tags(): string[] {
-        if (!Array.isArray(this._tags)) { this._tags = [] }
         return this._tags;
     }
 
     public set tags(value: string[]) {
-        this._tags = value;
+        this._tags = value || [];
     }
 
     public async delete(context: TurnContext): Promise<void> {

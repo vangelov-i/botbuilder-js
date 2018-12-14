@@ -7,6 +7,7 @@
  */
 import { TurnContext } from 'botbuilder-core';
 import { DocumentAccessor } from '../documentAccessor';
+import { DocumentContainer } from '../documentContainer';
 import { MapProperty } from './mapProperty';
 import { PropertyEvent, PropertyEventHandler } from '../propertyEventSource';
 
@@ -16,6 +17,10 @@ export class MapItemAccessor<T = any> implements DocumentAccessor {
 
     constructor(parent: MapProperty<T>) {
         this._parent = parent;
+    }
+
+    public get container(): DocumentContainer|undefined {
+        return this.parent ? this.parent.container : undefined;
     }
 
     public get parent(): DocumentAccessor {

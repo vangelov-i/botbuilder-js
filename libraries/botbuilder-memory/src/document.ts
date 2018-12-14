@@ -7,6 +7,7 @@
  */
 import { TurnContext } from 'botbuilder-core';
 import { DocumentAccessor } from './documentAccessor';
+import { DocumentContainer } from './documentContainer';
 import { PropertyAccessor } from './propertyAccessor';
 import { PropertyBase } from './propertyBase';
 import { PropertyEvent } from './propertyEventSource';
@@ -16,6 +17,10 @@ import { TemporaryDocument } from './temporaryDocument';
 
 export class Document<T = any> extends PropertyBase<T> implements DocumentAccessor {
     private properties: PropertyAccessor[] = [];
+
+    public get container(): DocumentContainer|undefined {
+        return this.parent ? this.parent.container : undefined;
+    }
 
     public addProperty(...properties: PropertyAccessor[]): this {
         properties.forEach((prop) => {

@@ -7,11 +7,12 @@
  */
 export * from './factories';
 export * from './properties';
-export * from './cachedDocumentCollection';
+export * from './cachedDocumentContainer';
 export * from './document';
 export * from './documentAccessor';
+export * from './documentContainer';
 export * from './idFactory';
-export * from './inMemoryDocumentCollection';
+export * from './inMemoryDocumentContainer';
 export * from './propertyAccessor';
 export * from './propertyBase';
 export * from './propertyEventSource';

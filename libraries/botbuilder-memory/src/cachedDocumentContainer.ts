@@ -8,12 +8,13 @@
 import { TurnContext } from 'botbuilder-core';
 import { PropertyEventSource } from './propertyEventSource';
 import { DocumentAccessor } from './documentAccessor';
+import { DocumentContainer } from './documentContainer';
 
-
-export abstract class CachedDocumentCollection extends PropertyEventSource implements DocumentAccessor {
-    private readonly cacheKey: Symbol = Symbol('cachedCollection');
+export abstract class CachedDocumentContainer extends PropertyEventSource implements DocumentAccessor {
+    private readonly cacheKey: Symbol = Symbol('cachedContainer');
     private readonly documents: DocumentAccessor[] = [];
 
+    public abstract readonly container: DocumentContainer|undefined; 
     protected abstract onDeleteProperty(context: TurnContext, id: string): Promise<void>;
     protected abstract onGetProperty<T = any>(context: TurnContext, id: string): Promise<T | undefined>;
     protected abstract onSetProperty<T = any>(context: TurnContext, id: string, value: T): Promise<void>;
@@ -76,8 +77,13 @@ export abstract class CachedDocumentCollection extends PropertyEventSource imple
 
     public async saveChanges(context: TurnContext): Promise<void> {
         // Flush any changes
-        const promises: Promise<void>[] = [];
         const cache = this.getCache(context);
+        await this.onSaveChanges(context, cache);
+        cache.clear();
+    }
+
+    protected async onSaveChanges(context: TurnContext, cache: Map<string, CachedCollectionValue>): Promise<void> {
+        const promises: Promise<void>[] = [];
         cache.forEach((value, id) => {
             if (value._hash !== JSON.stringify(value._value)) {
                 promises.push(this.onSetProperty(context, id, value._value));
