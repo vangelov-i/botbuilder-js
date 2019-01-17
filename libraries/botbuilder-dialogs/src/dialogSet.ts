@@ -59,6 +59,9 @@ export class DialogSet {
     private readonly dialogs: { [id: string]: Dialog } = {};
     private readonly dialogState: StatePropertyAccessor<DialogState>;
     private _telemetryClient: BotTelemetryClient;
+    
+    public parent: DialogSet;
+
     /**
      * Creates a new DialogSet instance.
      *
@@ -120,6 +123,9 @@ export class DialogSet {
      * Finds a dialog that was previously added to the set using [add()](#add).
      *
      * @remarks
+     * If the given dialogId can't be found and the DialogSet has a parent, the parent will be
+     * searched as well.
+     *  
      * This example finds a dialog named "greeting":
      *
      * ```JavaScript
@@ -128,7 +134,13 @@ export class DialogSet {
      * @param dialogId ID of the dialog or prompt to lookup.
      */
     public find(dialogId: string): Dialog|undefined {
-        return this.dialogs.hasOwnProperty(dialogId) ? this.dialogs[dialogId] : undefined;
+        if (this.dialogs.hasOwnProperty(dialogId)) {
+            return this.dialogs[dialogId];
+        } else if (this.parent) {
+            return this.parent.find(dialogId);
+        } else {
+            return undefined;
+        }
     }
 
     /** 
