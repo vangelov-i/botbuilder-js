@@ -149,7 +149,7 @@ export const ChannelAccount: msRest.CompositeMapper = {
         }
       },
       aadObjectId: {
-        serializedName: "aadObjectId",
+        serializedName: "objectId",
         type: {
           name: "String"
         }
